@@ -1,0 +1,14 @@
+# Ignore Python cache
+__pycache__/
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore text file
+temp.txt
+
+# Ignore log files
+*.log
+
+# Ignore VS Code settings
+.vscode/
