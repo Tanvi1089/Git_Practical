@@ -1,37 +1,34 @@
 pipeline {
     agent any
+
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'Getting source code from GitHub...'
-                // If using Jenkins natively, this stage automatically handles SCM checkout
-            }
-        }
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
                 script {
-                    echo 'Building the Docker image...'
+                    echo 'Building the Python application Docker container...'
+                    // Checks if Jenkins runs on Linux/Mac (Unix) or Windows
                     if (isUnix()) {
-                        sh 'docker build -t tanvi1089/python-app .'
+                        sh 'docker build -t tanvi1089/git_practical:latest .'
                     } else {
-                        bat 'docker build -t tanvi1089/python-app .'
+                        bat 'docker build -t tanvi1089/git_practical:latest .'
                     }
                 }
             }
         }
-        stage('Push to Docker Hub') {
+        
+        stage('Docker Push') {
             steps {
-                // Secures credentials using the ID created on Slide 5
+                // Securely injects your Docker Hub secret token credentials matching the ID 'dockerhub'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
                     script {
-                        echo 'Logging in and pushing image...'
+                        echo 'Pushing updated image to Docker Hub...'
                         if (isUnix()) {
                             sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
-                            sh 'docker push tanvi1089/python-app'
+                            sh 'docker push tanvi1089/git_practical:latest'
                             sh 'docker logout'
                         } else {
                             bat 'docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%'
-                            bat 'docker push tanvi1089/python-app'
+                            bat 'docker push tanvi1089/git_practical:latest'
                             bat 'docker logout'
                         }
                     }
@@ -40,7 +37,11 @@ pipeline {
         }
     }
     post {
-        success { echo 'Pipeline completed successfully!' }
-        failure { echo 'Pipeline failed!' }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
     }
 }
