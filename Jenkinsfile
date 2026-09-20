@@ -2,11 +2,21 @@ pipeline {
     agent any
 
     stages {
+        stage('Install Docker Tool') {
+            steps {
+                echo 'Installing missing Docker CLI client inside Jenkins...'
+                // Automatically installs the docker command utility using Debian package tools
+                sh '''
+                    apt-get update && \
+                    apt-get install -y --no-install-recommends docker.io
+                '''
+            }
+        }
+
         stage('Build Image') {
             steps {
                 script {
                     echo 'Building the Python application Docker container...'
-                    // Checks if Jenkins runs on Linux/Mac (Unix) or Windows
                     if (isUnix()) {
                         sh 'docker build -t tanvi1089/git_practical:latest .'
                     } else {
@@ -18,7 +28,6 @@ pipeline {
         
         stage('Docker Push') {
             steps {
-                // Securely injects your Docker Hub secret token credentials matching the ID 'dockerhub'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
                     script {
                         echo 'Pushing updated image to Docker Hub...'
