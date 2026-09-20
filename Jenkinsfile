@@ -1,56 +1,39 @@
 pipeline {
+
     agent any
 
     stages {
-        stage('Setup Docker CLI') {
+
+        stage('Checkout') {
             steps {
-                echo 'Downloading portable Docker CLI client...'
-                // Downloads, extracts, and sets up a localized Docker binary without root requirements
-                sh '''
-                    curl -fsSL https://docker.com -o docker.tgz
-                    tar -xzvf docker.tgz
-                    chmod +x docker/docker
-                '''
+                echo 'Getting source code from GitHub'
             }
         }
 
-        stage('Build Image') {
+        stage('Build') {
             steps {
-                script {
-                    echo 'Building the Python application Docker container...'
-                    // Calls the localized binary directly (./docker/docker)
-                    if (isUnix()) {
-                        sh './docker/docker build -t tanvi1089/git_practical:latest .'
-                    } else {
-                        bat 'docker build -t tanvi1089/git_practical:latest .'
-                    }
-                }
+                echo 'Building the project'
             }
         }
-        
-        stage('Docker Push') {
+
+        stage('Test') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
-                    script {
-                        echo 'Pushing updated image to Docker Hub...'
-                        if (isUnix()) {
-                            sh './docker/docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
-                            sh './docker/docker push tanvi1089/git_practical:latest'
-                            sh './docker/docker logout'
-                        } else {
-                            bat 'docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%'
-                            bat 'docker push tanvi1089/git_practical:latest'
-                            bat 'docker logout'
-                        }
-                    }
-                }
+                echo 'Testing the project'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying the project'
             }
         }
     }
+
     post {
         success {
             echo 'Pipeline completed successfully!'
         }
+
         failure {
             echo 'Pipeline failed!'
         }
