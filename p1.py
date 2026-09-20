@@ -5,4 +5,3 @@ print("start branching example")
 
 print("Multiplication")
 
-print("code of newfeature branch")
