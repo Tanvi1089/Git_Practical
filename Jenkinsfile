@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     stages {
-        stage('Install Docker Tool') {
+        stage('Setup Docker CLI') {
             steps {
-                echo 'Installing missing Docker CLI client inside Jenkins...'
-                // Automatically installs the docker command utility using Debian package tools
+                echo 'Downloading portable Docker CLI client...'
+                // Downloads, extracts, and sets up a localized Docker binary without root requirements
                 sh '''
-                    apt-get update && \
-                    apt-get install -y --no-install-recommends docker.io
+                    curl -fsSL https://docker.com -o docker.tgz
+                    tar -xzvf docker.tgz
+                    chmod +x docker/docker
                 '''
             }
         }
@@ -17,8 +18,9 @@ pipeline {
             steps {
                 script {
                     echo 'Building the Python application Docker container...'
+                    // Calls the localized binary directly (./docker/docker)
                     if (isUnix()) {
-                        sh 'docker build -t tanvi1089/git_practical:latest .'
+                        sh './docker/docker build -t tanvi1089/git_practical:latest .'
                     } else {
                         bat 'docker build -t tanvi1089/git_practical:latest .'
                     }
@@ -32,9 +34,9 @@ pipeline {
                     script {
                         echo 'Pushing updated image to Docker Hub...'
                         if (isUnix()) {
-                            sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
-                            sh 'docker push tanvi1089/git_practical:latest'
-                            sh 'docker logout'
+                            sh './docker/docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                            sh './docker/docker push tanvi1089/git_practical:latest'
+                            sh './docker/docker logout'
                         } else {
                             bat 'docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%'
                             bat 'docker push tanvi1089/git_practical:latest'
